@@ -1,15 +1,5 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]; then
-    echo "usage: <import|run>"
-    echo "commands:"
-    echo "    import: Set up the database and import /data.osm.pbf"
-    echo "    run: Runs Apache and renderd to serve tiles at /tile/{z}/{x}/{y}.png"
-    echo "environment variables:"
-    echo "    THREADS: defines number of threads used for importing / tile rendering"
-    exit 1
-fi
-
 if [ "$1" = "import" ]; then
     # Initialize PostgreSQL
     service postgresql start
@@ -33,6 +23,15 @@ if [ "$1" = "import" ]; then
 fi
 
 if [ "$1" = "run" ]; then
+    # Initialize mapnik style
+    echo "$2"
+    sudo -u renderer rm -rf /home/renderer/src/openstreetmap-carto/
+    p=`pwd`
+    cd /home/renderer/src/
+    sudo -u renderer git clone https://github.com/jonzarecki/openstreetmap-carto.git
+    sudo -u renderer carto /home/renderer/src/openstreetmap-carto/"$2" > /home/renderer/src/openstreetmap-carto/mapnik.xml
+    cd $p
+
     # Initialize PostgreSQL and Apache
     service postgresql start
     service apache2 restart
@@ -43,8 +42,8 @@ if [ "$1" = "run" ]; then
     # Run
     sudo -u renderer renderd -f -c /usr/local/etc/renderd.conf
 
-    exit 0
+#    exit 0
 fi
 
-echo "invalid command"
-exit 1
+#echo "invalid command"
+#exit 1
