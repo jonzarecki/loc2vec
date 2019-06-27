@@ -17,7 +17,7 @@ if [ "$1" = "import" ]; then
     fi
 
     # Import data
-    sudo -u renderer osm2pgsql -d gis --create --slim -G --hstore --tag-transform-script /home/renderer/src/openstreetmap-carto/openstreetmap-carto.lua -C 2048 --number-processes ${THREADS:-4} -S /home/renderer/src/openstreetmap-carto/openstreetmap-carto.style /data.osm.pbf
+    sudo -u renderer osm2pgsql -d gis --create --slim -G --hstore --multi-geometry --tag-transform-script /home/renderer/src/openstreetmap-carto/openstreetmap-carto.lua -C 2048 --number-processes ${THREADS:-4} -S /home/renderer/src/openstreetmap-carto/openstreetmap-carto.style /data.osm.pbf
 
     exit 0
 fi
@@ -25,9 +25,10 @@ fi
 if [ "$1" = "run" ]; then
     # Initialize mapnik style
     echo "$2"
-    sudo -u renderer rm -rf /home/renderer/src/openstreetmap-carto/
     p=`pwd`
     cd /home/renderer/src/
+    sudo -u renderer rm -rf /home/renderer/src/openstreetmap-carto/
+
     sudo -u renderer git clone https://github.com/jonzarecki/openstreetmap-carto.git
     sudo -u renderer carto /home/renderer/src/openstreetmap-carto/"$2" > /home/renderer/src/openstreetmap-carto/mapnik.xml
     cd $p
