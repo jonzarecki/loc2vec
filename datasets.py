@@ -2,6 +2,7 @@
 Experiment to see if we can create a loc2vec as detailed in the blogpost.
 bloglink: https://www.sentiance.com/2018/05/03/venue-mapping/
 """
+import random
 from pathlib import Path
 # from collections import OrderedDict
 # import time
@@ -11,9 +12,13 @@ import numpy as np
 from PIL import Image
 import torch
 # from torch import nn, optim
+from staticmap import StaticMap
 from torch.utils.data.dataset import Dataset
 # from torch.utils.data import DataLoader
 from torchvision import transforms
+
+from lat2tile import deg2num
+from tile_image import render_single_tile
 
 
 def get_files_from_path(pathstring):
@@ -83,15 +88,32 @@ class GeoTileDataset(Dataset):
     pd = None
 
     def __init__(self, path, transform, center_transform):
+        # for us west
+        zoom, self.startx, self.starty = deg2num(14, 48.995395, -124.866258)
+        zoom, self.endx, self.endy = deg2num(14, 31.74734, -104.052404)
+        self.SAMPLE_NUM = 50_000
+
         self.df_files = get_files_from_path(path)
         self.df_filtered_files = cleanse_files(self.df_files)
+        self.m = StaticMap(500, 500, url_template='http://localhost:8080/tile/{z}/{x}/{y}.png')
 
         self.ten_crop = transforms.Compose([transforms.TenCrop(128)])
         self.transform = transform
         self.center_transform = center_transform
 
     def __getitem__(self, index):
-        data = Image.open(self.df_filtered_files.iloc[index].path, 'r')
+        x, y = random.randint(self.startx, self.endx), random.randint(self.starty, self.endy)
+
+
+        # random spot in the area, only renders when needed
+        rand_lat = random.randrange(31.74734, 48.995395, 0.01)
+        rand_lon = random.randrange(-124.866258, -104.052404, 0.01)
+        print(rand_lat, rand_lon)
+        ext = [rand_lat, rand_lon, rand_lat + 0.001, rand_lon + 0.001]
+
+        data = render_single_tile(self.m, ext)
+
+        # data = Image.open(self.df_filtered_files.iloc[index].path, 'r')
         data = data.convert('RGB')
         cropped_data = self.ten_crop(data)
         center_data_tensor = torch.stack([self.center_transform(data)
@@ -105,7 +127,7 @@ class GeoTileDataset(Dataset):
         return twenty_data, tile_ids
 
     def __len__(self):
-        return self.df_filtered_files.shape[0]
+        return self.SAMPLE_NUM
 
     def get_file_df(self):
         return self.df_filtered_files

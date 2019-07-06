@@ -13,6 +13,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 # For Mixed precision training
+import sys
+sys.path.append('/home/yonatanz/Projects/PycharmProjects/loc2vec/apex')
 from apex import amp
 
 # Set up the network and training parameters
@@ -53,11 +55,9 @@ def main():
 
     pd_files = dset_train.get_file_df()
     weights = pd_files.frequency
-    train_sampler = WeightedRandomSampler(weights , len(dset_train))
     # Should numworkers be 1?
     kwargs = {'num_workers': 8, 'pin_memory': True} if cuda else {}
     online_train_loader = DataLoader(dset_train, batch_size=BATCH_SIZE,
-                                     sampler=train_sampler,
                                      **kwargs)
 
     model = Loc2Vec()

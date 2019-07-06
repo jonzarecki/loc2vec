@@ -24,11 +24,13 @@ zoom = 14
 # Bottom Right: Latitude: 31.74734 | Longitude: -104.052404
 # Bottom Left: Latitude: 31.74734 | Longitude: -124.866258
 
-# West US Data
-zoom, startx, starty = deg2num(zoom, 48.995395, -124.866258)
-zoom, endx, endy = deg2num(zoom, 31.74734, -104.052404)
+if __name__ == '__main__':
 
-for x in range(startx, endx + 1):
-    for y in range(starty, endy + 1):
-        # print(zoom, x, y)
-        print(f"http://localhost/tile/{zoom}/{x}/{y}.png")
+    # West US Data
+    zoom, startx, starty = deg2num(zoom, 48.995395, -124.866258)
+    zoom, endx, endy = deg2num(zoom, 31.74734, -104.052404)
+
+    for x in range(startx, endx + 1):
+        for y in range(starty, endy + 1):
+            # print(zoom, x, y)
+            print(f"http://localhost:8080/tile/{zoom}/{x}/{y}.png")
